@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESPIX · Presupuestos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --side:#0B1730; --side-2:#13254A; --side-ink:#C9D3E6;
+    --bg:#F5F7FB; --card:#FFFFFF; --ink:#111827; --muted:#6B7280; --line:#E5E7EB;
+    --brand:#2563EB; --brand-soft:#EFF4FF; --brand-ink:#1D4ED8;
+    --ok:#047857; --ok-soft:#ECFDF5; --warn:#B45309; --warn-soft:#FFFBEB;
+    --bad:#B91C1C; --bad-soft:#FEF2F2; --gray-soft:#F3F4F6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh;background:linear-gradient(90deg,var(--side) 232px,transparent 232px)}
+
+  /* Barra lateral */
+  aside{min-width:0;background:var(--side);color:var(--side-ink);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px}
+  .logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:22px;letter-spacing:.5px;padding:0 6px}
+  .logo .mark{width:30px;height:30px;border-radius:7px;background:var(--brand);display:grid;place-items:center;font-size:17px}
+  .ws{background:var(--side-2);border-radius:10px;padding:10px 12px;font-size:12px}
+  .ws b{display:block;color:#fff;font-size:13px}
+  .navlbl{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#7E8BA6;padding:0 8px}
+  nav{display:flex;flex-direction:column;gap:2px}
+  nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--side-ink)}
+  nav button:hover{background:var(--side-2)}
+  nav button.on{background:var(--brand);color:#fff}
+  nav svg{width:17px;height:17px;flex:none}
+  .side-foot{margin-top:auto;font-size:11px;color:#7E8BA6;padding:0 8px;line-height:1.5}
+
+  /* Contenido */
+  main{min-width:0}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:1px solid var(--line);background:var(--card);font-size:13px;color:var(--muted)}
+  .top b{color:var(--ink)}
+  .demo{background:var(--warn-soft);color:var(--warn);border-bottom:1px solid #FDE68A;padding:8px 28px;font-size:12.5px}
+  .page{padding:24px 28px 48px;max-width:1240px}
+  h1{font-size:26px;font-weight:600;margin:0 0 4px}
+  .lead{color:var(--muted);margin:0 0 20px}
+  h2{font-size:16px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .between{justify-content:space-between}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:2fr 2fr 1fr;gap:14px}
+  .fg{display:grid;gap:14px;align-items:end}
+  .fg5{grid-template-columns:repeat(4,minmax(0,1fr)) auto}
+  .fg4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .grid2>*,.grid3>*,.split>*,.fg>*{min-width:0}
+  .split{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+  label{display:block;font-size:12.5px;font-weight:500;margin-bottom:5px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:2px solid #BFD3FE;border-color:var(--brand)}
+  textarea{resize:vertical;min-height:40px}
+  .btn{text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:500;white-space:nowrap}
+  .btn:hover{background:var(--gray-soft)}
+  .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.pri:hover{background:var(--brand-ink)}
+  .btn.soft{background:var(--brand-soft);border-color:#DBE6FE;color:var(--brand-ink)}
+  .btn.sm{padding:5px 9px;font-size:12.5px}
+  .btn.danger{color:var(--bad)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .tbl{overflow-x:auto}
+  .scroll{max-height:380px;overflow-y:auto}
+  .scroll thead th{position:sticky;top:0;background:#fff;z-index:1}
+  table.wide{min-width:1020px}
+  td.code{white-space:nowrap}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{font-size:11.5px;color:var(--muted);font-weight:500}
+  td.n,th.n{text-align:right;white-space:nowrap}
+  td input,td select{padding:6px 8px}
+  td input.qty{width:80px;text-align:right}
+  .mat b{display:block;font-weight:600}
+  .mat span{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .p-Borrador{background:var(--gray-soft);color:#4B5563}
+  .p-Enviada{background:var(--brand-soft);color:var(--brand-ink)}
+  .p-Aprobada{background:var(--ok-soft);color:var(--ok)}
+  .p-Perdida{background:#F3F4F6;color:#6B7280}
+  .p-Cancelada{background:var(--bad-soft);color:var(--bad)}
+  .ok{background:var(--ok-soft);color:var(--ok)} .bad{background:var(--bad-soft);color:var(--bad)} .na{background:var(--gray-soft);color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .kpi .t{font-size:12px;color:var(--muted);font-weight:500}
+  .kpi .v{font-size:26px;font-weight:700;margin:6px 0 2px}
+  .kpi .f{font-size:12px;color:var(--muted);line-height:1.5}
+  .sum .l{display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px}
+  .sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-size:20px;font-weight:700}
+  .sum .muted{color:var(--muted)}
+  .note{background:var(--brand-soft);border:1px solid #DBE6FE;color:#1E3A8A;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:12.5px}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .empty{color:var(--muted);text-align:center;padding:28px}
+  .group{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+  .group-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#FAFBFD;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .group-h b{font-size:14px}
+  .group .tbl{padding:0 6px}
+  .red{color:var(--bad);font-weight:600}
+  #toast{position:fixed;right:20px;bottom:20px;max-width:380px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:10px;font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:9}
+  #toast.show{opacity:1;transform:none}
+  #toast.err{background:var(--bad)}
+  .hide{display:none!important}
+  svg text{font-family:Inter,system-ui,sans-serif}
+
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr;background:none}
+    aside{position:static;height:auto;padding:12px 16px;gap:10px}
+    .ws,.navlbl,.side-foot{display:none}
+    nav{flex-direction:row;overflow-x:auto}
+    nav button{white-space:nowrap}
+    .page{padding:18px 16px 40px}
+    .top,.demo{padding-left:16px;padding-right:16px}
+    .split,.grid2,.grid3,.fg5,.fg4{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="logo"><div class="mark">E</div>ESPIX</div>
+    <div class="ws">Espacio de trabajo<b>Taller de fabricación</b></div>
+    <div class="navlbl">Gestión</div>
+    <nav id="nav">
+      <button data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Inicio</button>
+      <button data-v="proveedores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>Proveedores</button>
+      <button data-v="materiales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Materiales</button>
+      <button data-v="presupuesto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 18v-6M9 15h6"/></svg>Presupuestos</button>
+      <button data-v="historial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Cotizaciones anteriores</button>
+      <button data-v="compras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L22 7H6"/></svg>Lista de materiales</button>
+      <button data-v="tablero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Tablero</button>
+    </nav>
+    <div class="side-foot">ESPIX · Conectamos tus proveedores. Simplificamos presupuestos.<br>Laboratorio Digital II · UPC</div>
+  </aside>
+
+  <main>
+    <div class="top"><span>Espacio de trabajo / <b id="crumb">Inicio</b></span><span id="conn">USD · Dólar</span></div>
+    <div class="demo hide" id="demo">Modo demostración: estás viendo datos de ejemplo que no se guardan. Para usar la base real, pega la URL y la llave de Supabase al inicio del código (ver README).</div>
+    <div class="page" id="view"></div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN · pega aquí los datos de tu proyecto de Supabase
+   Supabase → Project Settings → Data API (Project URL) y API Keys (llave pública "anon")
+   ===================================================================== */
+const SUPABASE_URL = 'PEGA_AQUI_TU_PROJECT_URL';
+const SUPABASE_KEY = 'PEGA_AQUI_TU_LLAVE_PUBLICA';
+/* Tablero de indicadores publicado en Google Apps Script */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMZ6w-cq69ax2pQrfGTpNKdW7mUEUZVBdz-OoJ8vaO2ufaCior-74zj4iLL04_Nw-w/exec';
+const VALIDEZ_DIAS = 15;   // días de validez del precio firme en el PDF
+const DEMO = SUPABASE_URL.indexOf('PEGA_AQUI') !== -1 || SUPABASE_KEY.indexOf('PEGA_AQUI') !== -1;
+
+/* ---------- Utilidades ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const r2 = x => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
+const money = x => x == null || isNaN(x) ? '—' : 'US$ ' + Number(x).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = x => Number(x).toLocaleString('es-PE', { maximumFractionDigits: 2 });
+const dec1 = x => Number(x).toLocaleString('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const pct = x => x == null ? '—' : dec1(x * 100) + ' %';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const hoy = () => iso(new Date());
+const fdate = d => d ? d.slice(8, 10) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4) : '—';
+const diasDesde = d => Math.floor((Date.now() - new Date(d + 'T00:00:00').getTime()) / 864e5);
+const ESTADOS = ['Borrador', 'Enviada', 'Aprobada', 'Perdida', 'Cancelada por demora'];
+const pill = e => '<span class="pill p-' + esc(e.split(' ')[0]) + '">' + esc(e) + '</span>';
+
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.className = '', err ? 6000 : 2600);
+}
+
+/* ---------- Regla de negocio (la misma que calcula la base de datos) ----------
+   subtotal = cantidad × precio acordado × (1 + merma %)
+   costo directo = suma de subtotales · precio final = costo directo × (1 + margen %) */
+function calcular(lineas, margen) {
+  let mat = 0, dir = 0;
+  lineas.forEach(l => {
+    mat += r2(l.cantidad * l.precio_unitario);
+    dir += r2(l.cantidad * l.precio_unitario * (1 + l.merma_pct / 100));
+  });
+  mat = r2(mat); dir = r2(dir);
+  return { costo_materiales: mat, costo_merma: r2(dir - mat), costo_directo: dir,
+           ganancia: r2(dir * margen / 100), precio_final: r2(dir * (1 + margen / 100)) };
+}
+
+/* =====================================================================
+   ACCESO A DATOS · Supabase (API REST) o modo demostración
+   ===================================================================== */
+async function rest(path, opt) {
+  opt = opt || {};
+  const res = await fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/' + path, {
+    method: opt.method || 'GET',
+    headers: Object.assign({ apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+                           opt.prefer ? { Prefer: opt.prefer } : {}),
+    body: opt.body ? JSON.stringify(opt.body) : undefined
+  });
+  const txt = await res.text();
+  let data = null; try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
+  if (!res.ok) throw new Error((data && data.message) || ('Supabase respondió ' + res.status));
+  return data;
+}
+
+const remoto = {
+  proveedores: () => rest('proveedores?select=*&order=nombre.asc'),
+  materiales: () => rest('materiales?select=*&order=codigo.asc'),
+  clientes: () => rest('clientes?select=*&order=nombre.asc'),
+  cotizaciones: () => rest('cotizaciones_totales?select=*&order=id.desc'),
+  detalle: id => rest('cotizacion_detalle?select=*&cotizacion_id=eq.' + id + '&order=id.asc'),
+  bom: id => rest('lista_materiales?select=*&cotizacion_id=eq.' + id),
+  indicadores: () => rest('indicadores_mes?select=*&order=mes.asc'),
+  addProveedor: p => rest('proveedores', { method: 'POST', body: [p], prefer: 'return=representation' }),
+  addMaterial: m => rest('materiales', { method: 'POST', body: [m], prefer: 'return=representation' }),
+  updMaterial: (id, p) => rest('materiales?id=eq.' + id, { method: 'PATCH', body: p }),
+  addCliente: async nombre => (await rest('clientes', { method: 'POST', body: [{ nombre }], prefer: 'return=representation' }))[0],
+  async guardar(cab, lineas) {
+    let id = cab.id;
+    const datos = { cliente_id: cab.cliente_id, proyecto: cab.proyecto, descripcion: cab.descripcion,
+                    fecha: cab.fecha, margen_pct: cab.margen_pct };
+    if (id) {
+      await rest('cotizaciones?id=eq.' + id, { method: 'PATCH', body: datos });
+      await rest('cotizacion_detalle?cotizacion_id=eq.' + id, { method: 'DELETE' });
+    } else {
+      datos.es_plantilla = !!cab.es_plantilla;
+      id = (await rest('cotizaciones', { method: 'POST', body: [datos], prefer: 'return=representation' }))[0].id;
+    }
+    // El precio y la merma NO se envían: la base los copia del catálogo (precio firme)
+    await rest('cotizacion_detalle', { method: 'POST', body: lineas.map(l => ({ cotizacion_id: id, material_id: l.material_id, cantidad: l.cantidad })) });
+    return id;
+  },
+  estado: (id, estado) => rest('cotizaciones?id=eq.' + id, { method: 'PATCH', body: { estado } }),
+  duplicar: (id, proyecto) => rest('rpc/duplicar_cotizacion', { method: 'POST', body: { p_id: id, p_proyecto: proyecto || null } }),
+  borrar: id => rest('cotizaciones?id=eq.' + id, { method: 'DELETE' })
+};
+
+/* ---------- Modo demostración: mismos datos de ejemplo que base_de_datos.sql ---------- */
+const demo = (function () {
+  const T = { proveedores: [], materiales: [], clientes: [], cotizaciones: [], detalle: [] };
+  const seq = { proveedores: 0, materiales: 0, clientes: 0, cotizaciones: 0, detalle: 0 };
+  const add = (t, o) => { o.id = ++seq[t]; T[t].push(o); return o; };
+  const menos = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+  const firme = c => c && (c.estado === 'Enviada' || c.estado === 'Aprobada');
+  const copia = o => JSON.parse(JSON.stringify(o));
+
+  function nuevaCot(cab) {
+    const c = add('cotizaciones', Object.assign({ cliente_id: null, descripcion: '', fecha: hoy(), margen_pct: 25, estado: 'Borrador',
+      es_plantilla: false, copia_de: null, fecha_envio: null, fecha_aprobacion: null }, cab));
+    c.codigo = (c.es_plantilla ? 'PLA-' : 'PRE-') + String(c.id).padStart(4, '0');
+    return c;
+  }
+  function addLinea(cid, material_id, cantidad) {
+    const c = T.cotizaciones.find(x => x.id === cid);
+    if (firme(c)) throw new Error('La cotización ya fue ' + c.estado.toLowerCase() + ' y tiene precio firme. Crea una nueva versión para cambiarla.');
+    const m = T.materiales.find(x => x.id === material_id);
+    add('detalle', { cotizacion_id: cid, material_id, cantidad: Number(cantidad), precio_unitario: m.precio_unitario, merma_pct: m.merma_pct });
+  }
+  function cambiarEstado(id, estado) {
+    const c = T.cotizaciones.find(x => x.id === id);
+    if (estado === 'Enviada' && c.estado !== 'Enviada' && !c.fecha_envio) c.fecha_envio = hoy();
+    if (estado === 'Aprobada' && c.estado !== 'Aprobada') { c.fecha_aprobacion = hoy(); if (!c.fecha_envio) c.fecha_envio = hoy(); }
+    c.estado = estado;
+  }
+  const cod = c => T.materiales.find(m => m.codigo === c).id;
+  function semilla(cab, items) { const c = nuevaCot(cab); items.forEach(i => addLinea(c.id, cod(i[0]), i[1])); return c; }
+
+  // Proveedores, materiales y clientes de ejemplo
+  [['Acero Norte', 'Jorge Salas', '51987654321', 'ventas@aceronorte.example'],
+   ['Fijaciones del Centro', 'Rosa Medina', '51987654322', 'pedidos@fijaciones.example'],
+   ['Recubrimientos Lima', 'Carlos Vega', '51987654323', 'ventas@recubrimientos.example'],
+   ['Maderas y Tableros Sur', 'Ana Paredes', '51987654324', 'cotiza@tablerossur.example']]
+    .forEach(p => add('proveedores', { nombre: p[0], contacto: p[1], whatsapp: p[2], correo: p[3] }));
+  [['AC-001', 'Lámina de acero A36', 'Espesor 3 mm · 1,22 × 2,44 m', 'plancha', 1, 48, 8],
+   ['AC-014', 'Perfil tubular cuadrado', '40 × 40 mm · largo 6 m', 'pieza', 1, 12, 5],
+   ['AC-020', 'Soldadura E6013', 'Electrodo 1/8"', 'kg', 1, 4.2, 10],
+   ['FI-008', 'Tornillo hexagonal M10', 'Acero galvanizado · 30 mm', 'pieza', 2, 0.35, 3],
+   ['FI-015', 'Bisagra cazoleta 35 mm', 'Cierre suave', 'pieza', 2, 1.2, 2],
+   ['FI-022', 'Riel telescópico', '45 cm · par', 'par', 2, 6.8, 0],
+   ['RC-003', 'Pintura epóxica industrial', 'Acabado gris · uso industrial', 'litro', 3, 9.5, 10],
+   ['RC-007', 'Thinner acrílico', 'Para dilución', 'litro', 3, 5.5, 10],
+   ['MT-001', 'Tablero melamina blanca', '18 mm · 2,14 × 2,44 m', 'plancha', 4, 52, 12],
+   ['MT-004', 'Tablero MDF crudo', '18 mm · 2,44 × 1,83 m', 'plancha', 4, 38, 12],
+   ['MT-010', 'Canto PVC blanco', '22 × 0,45 mm', 'm', 4, 0.6, 10],
+   ['MT-015', 'Vidrio templado', '6 mm · incoloro', 'm2', 4, 45, 5]]
+    .forEach(m => add('materiales', { codigo: m[0], nombre: m[1], especificacion: m[2], unidad: m[3], proveedor_id: m[4],
+      precio_unitario: m[5], merma_pct: m[6], activo: true, actualizado_en: new Date().toISOString() }));
+  [['Industrias del Norte', '20111111111'], ['Constructora Andina', '20222222222'], ['Oficinas Prisma', '20333333333']]
+    .forEach(c => add('clientes', { nombre: c[0], ruc: c[1] }));
+
+  semilla({ proyecto: 'Escritorio operativo 1,20 m', descripcion: 'Escritorio en melamina blanca con estructura metálica', margen_pct: 30, es_plantilla: true },
+    [['MT-001', 1], ['AC-014', 2], ['MT-010', 6], ['FI-008', 12], ['RC-003', 0.5]]);
+  semilla({ proyecto: 'Mesa de ensamble industrial', descripcion: 'Mesa de 2,40 × 1,20 m con estructura tubular y acabado epóxico', margen_pct: 25, es_plantilla: true },
+    [['AC-001', 2], ['AC-014', 6], ['FI-008', 40], ['RC-003', 4], ['AC-020', 2]]);
+  let c = semilla({ cliente_id: 1, proyecto: 'Mesa de ensamble industrial ×4', descripcion: 'Cuatro mesas de 2,40 × 1,20 m, acabado epóxico gris', margen_pct: 25, fecha: menos(6) },
+    [['AC-001', 8], ['AC-014', 24], ['FI-008', 160], ['RC-003', 16], ['AC-020', 8]]);
+  cambiarEstado(c.id, 'Enviada'); c.fecha_envio = menos(5); cambiarEstado(c.id, 'Aprobada');
+  c = semilla({ cliente_id: 3, proyecto: 'Estaciones de trabajo ×6', descripcion: 'Seis escritorios operativos con cajonera', margen_pct: 30, fecha: menos(2) },
+    [['MT-001', 6], ['AC-014', 12], ['MT-010', 36], ['FI-008', 72], ['FI-022', 6], ['RC-003', 3]]);
+  cambiarEstado(c.id, 'Enviada');
+  semilla({ cliente_id: 2, proyecto: 'Mostrador de recepción', descripcion: 'Mostrador en MDF con tapa de vidrio templado', margen_pct: 28 },
+    [['MT-004', 3], ['MT-015', 1.5], ['MT-010', 12], ['FI-015', 4]]);
+
+  // Indicadores mensuales del histórico (tabla 4.1 del informe)
+  const U = { umbral_cancelacion: 0.25, umbral_error: 0.30, umbral_lead_time: 5, umbral_fuga_margen: 7 };
+  const IND = [['2024-01', 32, 11, 13, 171.0, 281.6], ['2024-02', 49, 11, 18, 240.1, 333.2], ['2024-03', 52, 10, 18, 275.6, 384.8],
+               ['2024-04', 42, 13, 10, 210.0, 302.4], ['2024-05', 52, 15, 11, 254.8, 364.0], ['2024-06', 54, 15, 17, 275.4, 388.8],
+               ['2024-07', 19, 4, 5, 89.3, 108.3]].map(r => Object.assign({ mes: r[0], total_cotizaciones: r[1], canceladas_demora: r[2],
+                 tasa_cancelacion_demora: r[2] / r[1], con_error_calculo: r[3], tasa_error_calculo: r[3] / r[1],
+                 con_lead_time: r[1], suma_lead_time: r[4], lead_time_promedio: r[4] / r[1],
+                 con_fuga: r[1], suma_fuga_margen: r[5], fuga_margen_media: r[5] / r[1] }, U));
+
+  function totales(c) {
+    const ls = T.detalle.filter(d => d.cotizacion_id === c.id);
+    const cl = T.clientes.find(x => x.id === c.cliente_id);
+    return Object.assign({}, c, { cliente: cl ? cl.nombre : null, materiales: ls.length,
+      lead_time_dias: c.fecha_envio ? Math.round((new Date(c.fecha_envio) - new Date(c.fecha)) / 864e5) : null }, calcular(ls, c.margen_pct));
+  }
+
+  return {
+    proveedores: async () => copia(T.proveedores).sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    materiales: async () => copia(T.materiales).sort((a, b) => a.codigo.localeCompare(b.codigo)),
+    clientes: async () => copia(T.clientes).sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    cotizaciones: async () => T.cotizaciones.map(totales).sort((a, b) => b.id - a.id),
+    detalle: async id => copia(T.detalle.filter(d => d.cotizacion_id === id)),
+    indicadores: async () => copia(IND),
+    async bom(id) {
+      const c = T.cotizaciones.find(x => x.id === id);
+      if (!c || c.estado !== 'Aprobada') return [];
+      const g = {};
+      T.detalle.filter(d => d.cotizacion_id === id).forEach(d => {
+        const m = T.materiales.find(x => x.id === d.material_id), p = T.proveedores.find(x => x.id === m.proveedor_id);
+        const k = m.id;
+        if (!g[k]) g[k] = { cotizacion_id: id, codigo: c.codigo, proyecto: c.proyecto, proveedor_id: p.id, proveedor: p.nombre, contacto: p.contacto,
+          whatsapp: p.whatsapp, correo: p.correo, material_codigo: m.codigo, material: m.nombre, especificacion: m.especificacion, unidad: m.unidad,
+          cantidad_proyecto: 0, _conMerma: 0, precio_unitario: d.precio_unitario };
+        g[k].cantidad_proyecto += d.cantidad; g[k]._conMerma += d.cantidad * (1 + d.merma_pct / 100);
+      });
+      return Object.values(g).map(x => { x.cantidad_a_comprar = Math.ceil(x._conMerma - 1e-9); x.costo_compra = r2(x.cantidad_a_comprar * x.precio_unitario); delete x._conMerma; return x; })
+        .sort((a, b) => a.proveedor.localeCompare(b.proveedor) || a.material_codigo.localeCompare(b.material_codigo));
+    },
+    async addProveedor(p) {
+      if (T.proveedores.some(x => x.nombre.toLowerCase() === p.nombre.toLowerCase())) throw new Error('Ya existe un proveedor con ese nombre.');
+      return [add('proveedores', p)];
+    },
+    async addMaterial(m) {
+      if (T.materiales.some(x => x.codigo.toLowerCase() === m.codigo.toLowerCase())) throw new Error('Ya existe un material con ese código.');
+      return [add('materiales', Object.assign({ activo: true, actualizado_en: new Date().toISOString() }, m))];
+    },
+    async updMaterial(id, p) { Object.assign(T.materiales.find(x => x.id === id), p, { actualizado_en: new Date().toISOString() }); },
+    async addCliente(nombre) { return add('clientes', { nombre }); },
+    async guardar(cab, lineas) {
+      let c;
+      if (cab.id) {
+        c = T.cotizaciones.find(x => x.id === cab.id);
+        if (firme(c)) throw new Error('La cotización tiene precio firme y no se puede cambiar.');
+        Object.assign(c, { cliente_id: cab.cliente_id, proyecto: cab.proyecto, descripcion: cab.descripcion, fecha: cab.fecha, margen_pct: cab.margen_pct });
+        T.detalle = T.detalle.filter(d => d.cotizacion_id !== c.id);
+      } else c = nuevaCot({ cliente_id: cab.cliente_id, proyecto: cab.proyecto, descripcion: cab.descripcion, fecha: cab.fecha, margen_pct: cab.margen_pct, es_plantilla: !!cab.es_plantilla });
+      lineas.forEach(l => addLinea(c.id, l.material_id, l.cantidad));
+      return c.id;
+    },
+    async estado(id, e) { cambiarEstado(id, e); },
+    async duplicar(id, proyecto) {
+      const o = T.cotizaciones.find(x => x.id === id);
+      const c = nuevaCot({ cliente_id: o.cliente_id, proyecto: proyecto || o.proyecto, descripcion: o.descripcion, margen_pct: o.margen_pct, copia_de: o.id });
+      T.detalle.filter(d => d.cotizacion_id === id).forEach(d => addLinea(c.id, d.material_id, d.cantidad));
+      return c.id;
+    },
+    async borrar(id) {
+      const c = T.cotizaciones.find(x => x.id === id);
+      if (c.estado !== 'Borrador' && !c.es_plantilla) throw new Error('Solo se pueden borrar borradores.');
+      T.cotizaciones = T.cotizaciones.filter(x => x.id !== id); T.detalle = T.detalle.filter(d => d.cotizacion_id !== id);
+    }
+  };
+})();
+
+const db = DEMO ? demo : remoto;
+
+/* =====================================================================
+   ESTADO Y NAVEGACIÓN
+   ===================================================================== */
+const S = { proveedores: [], materiales: [], clientes: [], cotizaciones: [] };
+let editor = null;          // presupuesto en edición
+let filtroEstado = 'Todas';
+let bomSel = null;
+let periodo = 'todos';
+
+async function cargar() {
+  const r = await Promise.all([db.proveedores(), db.materiales(), db.clientes(), db.cotizaciones()]);
+  S.proveedores = r[0]; S.materiales = r[1]; S.clientes = r[2];
+  S.cotizaciones = r[3].map(c => { ['margen_pct', 'costo_materiales', 'costo_merma', 'costo_directo', 'ganancia', 'precio_final'].forEach(k => c[k] = Number(c[k])); return c; });
+  S.materiales.forEach(m => { m.precio_unitario = Number(m.precio_unitario); m.merma_pct = Number(m.merma_pct); });
+}
+const prov = id => S.proveedores.find(p => p.id === id) || {};
+const matById = id => S.materiales.find(m => m.id === id);
+
+const VISTAS = { inicio: 'Inicio', proveedores: 'Proveedores', materiales: 'Materiales', presupuesto: 'Presupuestos',
+                 historial: 'Cotizaciones anteriores', compras: 'Lista de materiales', tablero: 'Tablero' };
+let vista = 'inicio';
+async function ir(v, recargar) {
+  vista = v;
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $('#crumb').textContent = VISTAS[v];
+  try {
+    if (recargar !== false) await cargar();
+    await ({ inicio: vInicio, proveedores: vProveedores, materiales: vMateriales, presupuesto: vPresupuesto,
+             historial: vHistorial, compras: vCompras, tablero: vTablero })[v]();
+  } catch (e) {
+    $('#view').innerHTML = '<div class="card"><h2>No se pudo leer la base de datos</h2><p class="sub">' + esc(e.message) +
+      '</p><p class="sub">Revisa que la URL y la llave pública de Supabase estén bien pegadas y que hayas corrido base_de_datos.sql.</p></div>';
+  }
+  window.scrollTo(0, 0);
+}
+$$('#nav button').forEach(b => b.addEventListener('click', () => ir(b.dataset.v)));
+
+/* =====================================================================
+   INICIO
+   ===================================================================== */
+async function vInicio() {
+  const cots = S.cotizaciones.filter(c => !c.es_plantilla);
+  const mes = hoy().slice(0, 7);
+  const delMes = cots.filter(c => c.fecha.slice(0, 7) === mes);
+  const aprob = cots.filter(c => c.estado === 'Aprobada');
+  const enEspera = cots.filter(c => c.estado === 'Enviada');
+  const atrasadas = enEspera.filter(c => diasDesde(c.fecha_envio || c.fecha) > 5);
+  const lt = cots.filter(c => c.lead_time_dias != null);
+  const ltProm = lt.length ? lt.reduce((a, c) => a + Number(c.lead_time_dias), 0) / lt.length : null;
+  $('#view').innerHTML =
+    '<h1>Hola de nuevo</h1><p class="lead">Así va el armado de presupuestos del taller.</p>' +
+    '<div class="kpis">' +
+      kpi('Cotizaciones del mes', delMes.length, delMes.length + ' registradas en ' + mes) +
+      kpi('Monto aprobado', money(aprob.reduce((a, c) => a + c.precio_final, 0)), aprob.length + (aprob.length === 1 ? ' cotización aprobada' : ' cotizaciones aprobadas')) +
+      kpi('Esperando respuesta', enEspera.length, atrasadas.length ? '<span class="red">' + atrasadas.length + ' con más de 5 días</span>' : 'Ninguna con más de 5 días') +
+      kpi('Tiempo hasta enviar', ltProm == null ? '—' : num(ltProm) + ' días', 'Promedio de ' + lt.length + ' cotizaciones enviadas') +
+    '</div>' +
+    '<div class="grid2">' +
+      '<div class="card"><div class="row between"><div><h2>Últimas cotizaciones</h2><p class="sub">Las 5 más recientes</p></div>' +
+        '<button class="btn pri sm" onclick="nuevoPresupuesto()">+ Nuevo presupuesto</button></div>' +
+        tablaCots(cots.slice(0, 5), true) + '</div>' +
+      '<div class="card"><h2>Seguimiento</h2><p class="sub">Cotizaciones enviadas que necesitan respuesta del cliente</p>' +
+        (enEspera.length ? '<div class="tbl"><table><thead><tr><th>Código</th><th>Cliente</th><th class="n">Días esperando</th></tr></thead><tbody>' +
+          enEspera.map(c => { const d = diasDesde(c.fecha_envio || c.fecha); return '<tr><td>' + esc(c.codigo) + '</td><td>' + esc(c.cliente || '—') +
+            '</td><td class="n ' + (d > 5 ? 'red' : '') + '">' + d + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+          '<p class="sub" style="margin-top:10px">En el histórico, las cotizaciones que pasan de 5 días son las que más se cancelan por demora.</p>'
+          : '<div class="empty">No hay cotizaciones esperando respuesta.</div>') +
+      '</div>' +
+    '</div>';
+}
+function kpi(t, v, f) { return '<div class="kpi"><div class="t">' + t + '</div><div class="v">' + v + '</div><div class="f">' + f + '</div></div>'; }
+function tablaCots(lista, corta) {
+  if (!lista.length) return '<div class="empty">Todavía no hay cotizaciones.</div>';
+  return '<div class="tbl"><table><thead><tr><th>Código</th>' + (corta ? '' : '<th>Fecha</th>') + '<th>Cliente</th><th>Proyecto</th><th class="n">Precio final</th><th>Estado</th></tr></thead><tbody>' +
+    lista.map(c => '<tr><td class="code">' + esc(c.codigo) + '</td>' + (corta ? '' : '<td class="code">' + fdate(c.fecha) + '</td>') + '<td>' + esc(c.cliente || '—') + '</td><td>' + esc(c.proyecto) +
+      '</td><td class="n">' + money(c.precio_final) + '</td><td>' + pill(c.estado) + '</td></tr>').join('') + '</tbody></table></div>';
+}
+
+/* =====================================================================
+   PROVEEDORES
+   ===================================================================== */
+async function vProveedores() {
+  const cuenta = id => S.materiales.filter(m => m.proveedor_id === id).length;
+  $('#view').innerHTML =
+    '<h1>Proveedores</h1><p class="lead">A quién se le compra cada material y cómo contactarlo.</p>' +
+    '<div class="card"><h2>Agregar proveedor</h2><p class="sub">El WhatsApp va con código de país y sin espacios (ej. 51987654321).</p>' +
+      '<form id="fProv" class="fg fg5">' +
+        '<div><label>Nombre</label><input name="nombre" required></div>' +
+        '<div><label>Contacto</label><input name="contacto"></div>' +
+        '<div><label>WhatsApp</label><input name="whatsapp" inputmode="numeric" pattern="[0-9]{8,15}"></div>' +
+        '<div><label>Correo</label><input name="correo" type="email"></div>' +
+        '<button class="btn pri">Guardar</button></form></div>' +
+    '<div class="card"><div class="tbl"><table><thead><tr><th>Proveedor</th><th>Contacto</th><th>WhatsApp</th><th>Correo</th><th class="n">Materiales</th></tr></thead><tbody>' +
+      S.proveedores.map(p => '<tr><td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.contacto || '—') + '</td><td>' + esc(p.whatsapp || '—') +
+        '</td><td>' + esc(p.correo || '—') + '</td><td class="n">' + cuenta(p.id) + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+  $('#fProv').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    Object.keys(f).forEach(k => { f[k] = f[k].trim() || null; });
+    try { await db.addProveedor(f); toast('Proveedor guardado'); ir('proveedores'); } catch (err) { toast(err.message, true); }
+  });
+}
+
+/* =====================================================================
+   MATERIALES (catálogo con precios acordados · HU1)
+   ===================================================================== */
+async function vMateriales() {
+  const opts = S.proveedores.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('');
+  $('#view').innerHTML =
+    '<h1>Materiales</h1><p class="lead">Catálogo con el precio acordado con cada proveedor. Si un precio cambia, edítalo aquí: los presupuestos nuevos toman el precio actualizado.</p>' +
+    '<div class="card"><h2>Agregar material</h2><p class="sub">La merma es el porcentaje que se pierde al cortar o aplicar el material.</p>' +
+      '<form id="fMat" class="fg fg4">' +
+        '<div><label>Código</label><input name="codigo" required placeholder="AC-030"></div>' +
+        '<div><label>Nombre</label><input name="nombre" required></div>' +
+        '<div><label>Especificación</label><input name="especificacion" placeholder="Medidas, espesor, acabado"></div>' +
+        '<div><label>Proveedor</label><select name="proveedor_id" required>' + opts + '</select></div>' +
+        '<div><label>Unidad</label><select name="unidad"><option>pieza</option><option>plancha</option><option>m</option><option>m2</option><option>kg</option><option>litro</option><option>par</option></select></div>' +
+        '<div><label>Precio acordado (US$)</label><input name="precio_unitario" type="number" step="0.01" min="0.01" required></div>' +
+        '<div><label>Merma %</label><input name="merma_pct" type="number" step="0.5" min="0" max="99" value="5" required></div>' +
+        '<button class="btn pri">Guardar material</button></form></div>' +
+    '<div class="card"><div class="row between" style="margin-bottom:10px"><h2>Catálogo</h2>' +
+      '<div class="row"><select id="mProv" style="width:auto"><option value="">Todos los proveedores</option>' + opts + '</select>' +
+      '<input id="mBus" placeholder="Buscar por nombre o código" style="width:240px"></div></div>' +
+      '<div class="tbl"><table><thead><tr><th>Material</th><th>Proveedor</th><th>Unidad</th><th class="n">Precio acordado</th><th class="n">Merma %</th><th>Actualizado</th></tr></thead><tbody id="mBody"></tbody></table></div></div>';
+  const pintar = () => {
+    const pv = $('#mProv').value, q = $('#mBus').value.toLowerCase();
+    const l = S.materiales.filter(m => (!pv || m.proveedor_id === Number(pv)) && (!q || (m.nombre + ' ' + m.codigo).toLowerCase().includes(q)));
+    $('#mBody').innerHTML = l.length ? l.map(m => '<tr><td class="mat"><b>' + esc(m.nombre) + '</b><span>' + esc(m.codigo) + (m.especificacion ? ' · ' + esc(m.especificacion) : '') +
+      '</span></td><td>' + esc(prov(m.proveedor_id).nombre) + '</td><td>' + esc(m.unidad) +
+      '</td><td class="n"><input class="qty" type="number" step="0.01" min="0.01" data-id="' + m.id + '" data-k="precio_unitario" value="' + m.precio_unitario + '"></td>' +
+      '<td class="n"><input class="qty" type="number" step="0.5" min="0" max="99" data-id="' + m.id + '" data-k="merma_pct" value="' + m.merma_pct + '"></td>' +
+      '<td>' + fdate((m.actualizado_en || '').slice(0, 10)) + '</td></tr>').join('') : '<tr><td colspan="6" class="empty">No hay materiales con ese filtro.</td></tr>';
+  };
+  pintar();
+  $('#mProv').addEventListener('change', pintar); $('#mBus').addEventListener('input', pintar);
+  $('#mBody').addEventListener('change', async e => {
+    const i = e.target; if (!i.dataset.id) return;
+    const v = Number(i.value);
+    if (!(v >= 0) || (i.dataset.k === 'precio_unitario' && v <= 0)) { toast('Valor no válido', true); return; }
+    try { await db.updMaterial(Number(i.dataset.id), { [i.dataset.k]: v }); toast('Precio actualizado en el catálogo'); await cargar(); pintar(); }
+    catch (err) { toast(err.message, true); }
+  });
+  $('#fMat').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    f.proveedor_id = Number(f.proveedor_id); f.precio_unitario = Number(f.precio_unitario); f.merma_pct = Number(f.merma_pct);
+    f.codigo = f.codigo.trim().toUpperCase(); f.especificacion = f.especificacion.trim() || null;
+    try { await db.addMaterial(f); toast('Material agregado al catálogo'); ir('materiales'); } catch (err) { toast(err.message, true); }
+  });
+}
+
+/* =====================================================================
+   PRESUPUESTOS · crear o editar (HU2, HU4, HU8)
+   ===================================================================== */
+function nuevoPresupuesto() { editor = null; ir('presupuesto'); }
+
+async function abrirEnEditor(id) {
+  const c = S.cotizaciones.find(x => x.id === id);
+  const det = await db.detalle(id);
+  editor = { id: c.id, codigo: c.codigo, es_plantilla: c.es_plantilla, cliente: c.cliente || '', proyecto: c.proyecto, descripcion: c.descripcion || '',
+             fecha: c.fecha, margen_pct: Number(c.margen_pct),
+             lineas: det.map(d => ({ material_id: d.material_id, cantidad: Number(d.cantidad) })) };
+  ir('presupuesto', false);
+}
+
+async function vPresupuesto() {
+  if (!editor) editor = { id: null, cliente: '', proyecto: '', descripcion: '', fecha: hoy(), margen_pct: 25, lineas: [] };
+  const E = editor;
+  const plantillas = S.cotizaciones.filter(c => c.es_plantilla);
+  const titulo = E.id ? (E.es_plantilla ? 'Editar plantilla ' : 'Editar borrador ') + E.codigo : 'Crear presupuesto';
+  $('#view').innerHTML =
+    '<div class="row between"><div><h1>' + esc(titulo) + '</h1><p class="lead">Configura los materiales y define un precio de venta rentable.</p></div>' +
+      '<span class="pill p-Borrador">' + (E.id ? 'Borrador · ' + esc(E.codigo) : 'Borrador · sin guardar') + '</span></div>' +
+    '<div class="split"><div>' +
+      '<div class="card"><div class="row between"><h2>Datos del proyecto</h2>' +
+        (E.id ? '' : '<select id="pPlant" style="width:auto"><option value="">Cargar plantilla…</option>' +
+          plantillas.map(p => '<option value="' + p.id + '">' + esc(p.proyecto) + '</option>').join('') + '</select>') + '</div>' +
+        '<div class="grid3" style="margin-top:12px">' +
+          '<div><label>Cliente</label><input id="pCli" list="lCli" value="' + esc(E.cliente) + '" placeholder="Escribe o elige un cliente"' + (E.es_plantilla ? ' disabled' : '') + '>' +
+            '<datalist id="lCli">' + S.clientes.map(c => '<option value="' + esc(c.nombre) + '">').join('') + '</datalist></div>' +
+          '<div><label>Proyecto</label><input id="pProy" value="' + esc(E.proyecto) + '" placeholder="Ej. Mesa de ensamble industrial"></div>' +
+          '<div><label>Fecha</label><input id="pFecha" type="date" value="' + E.fecha + '"></div></div>' +
+        '<div style="margin-top:12px"><label>Descripción</label><textarea id="pDesc" rows="2" placeholder="Medidas, acabados y lo que incluye">' + esc(E.descripcion) + '</textarea></div></div>' +
+      '<div class="card"><div class="row between"><div><h2>Selecciona tus materiales</h2><p class="sub">Consulta el catálogo y agrega las cantidades que requiere el proyecto.</p></div>' +
+        '<span class="pill p-Enviada">' + S.proveedores.length + ' proveedores</span></div>' +
+        '<div class="row" style="margin-bottom:8px"><select id="sProv" style="width:auto"><option value="">Todos los proveedores</option>' +
+          S.proveedores.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('') + '</select>' +
+          '<input id="sBus" placeholder="Buscar por nombre o código de material" style="flex:1;min-width:200px"></div>' +
+        '<div class="tbl scroll"><table><thead><tr><th>Material</th><th>Proveedor</th><th>Unidad</th><th class="n">Precio unitario</th><th class="n">Cantidad</th><th></th></tr></thead><tbody id="sBody"></tbody></table></div></div>' +
+      '<div class="card"><h2>Materiales del presupuesto</h2><p class="sub">El subtotal ya incluye la merma de cada material.</p>' +
+        '<div class="tbl"><table><thead><tr><th>Material</th><th class="n">Cantidad</th><th class="n">Precio</th><th class="n">Merma</th><th class="n">Subtotal</th><th></th></tr></thead><tbody id="lBody"></tbody></table></div></div>' +
+    '</div><div>' +
+      '<div class="card sum" style="position:sticky;top:16px"><h2>Resumen</h2><p class="sub">Se calcula solo, con la misma regla que la base de datos.</p>' +
+        '<div class="l"><span class="muted">Costo de materiales</span><span id="rMat"></span></div>' +
+        '<div class="l"><span class="muted">Merma</span><span id="rMer"></span></div>' +
+        '<div class="l"><b>Costo directo</b><b id="rDir"></b></div>' +
+        '<div class="l" style="align-items:center"><span class="muted">Margen de ganancia</span><span style="display:flex;align-items:center;gap:6px"><input id="pMargen" type="number" min="0" max="400" step="1" value="' + E.margen_pct + '" style="width:72px;text-align:right">%</span></div>' +
+        '<div class="l"><span class="muted">Ganancia</span><span id="rGan"></span></div>' +
+        '<div class="l tot"><span>Precio final</span><span id="rFin"></span></div>' +
+        '<div style="display:grid;gap:8px;margin-top:14px">' +
+          '<button class="btn pri" id="bGuardar" style="justify-content:center">' + (E.es_plantilla ? 'Guardar plantilla' : 'Guardar presupuesto') + '</button>' +
+          (E.id ? '' : '<button class="btn soft" id="bPlant" style="justify-content:center">Guardar como plantilla</button>') +
+          '<button class="btn" id="bPdf" style="justify-content:center">Vista previa del PDF</button>' +
+          (E.id ? '<button class="btn" id="bCancel" style="justify-content:center">Descartar cambios</button>' : '') + '</div>' +
+        '<p class="note" style="margin-top:14px">Al marcar la cotización como <b>Enviada</b>, el precio queda firme: ya no se puede cambiar. Si el cliente pide ajustes, se crea una nueva versión desde Cotizaciones anteriores.</p>' +
+      '</div>' +
+    '</div></div>';
+
+  const lineaCalc = l => { const m = matById(l.material_id); return { cantidad: l.cantidad, precio_unitario: m.precio_unitario, merma_pct: m.merma_pct }; };
+  const pintarSel = () => {
+    const pv = $('#sProv').value, q = $('#sBus').value.toLowerCase();
+    const l = S.materiales.filter(m => m.activo !== false && (!pv || m.proveedor_id === Number(pv)) && (!q || (m.nombre + ' ' + m.codigo).toLowerCase().includes(q)));
+    $('#sBody').innerHTML = l.map(m => '<tr><td class="mat"><b>' + esc(m.nombre) + '</b><span>' + esc(m.codigo) + (m.especificacion ? ' · ' + esc(m.especificacion) : '') +
+      '</span></td><td>' + esc(prov(m.proveedor_id).nombre) + '</td><td>' + esc(m.unidad) + '</td><td class="n">' + money(m.precio_unitario) +
+      '</td><td class="n"><input class="qty" type="number" min="0.01" step="any" value="1" id="q' + m.id + '"></td>' +
+      '<td class="n"><button class="btn soft sm" data-add="' + m.id + '">+ Agregar</button></td></tr>').join('') || '<tr><td colspan="6" class="empty">Sin resultados</td></tr>';
+  };
+  const pintarLin = () => {
+    $('#lBody').innerHTML = E.lineas.length ? E.lineas.map((l, i) => {
+      const m = matById(l.material_id), c = lineaCalc(l);
+      return '<tr><td class="mat"><b>' + esc(m.nombre) + '</b><span>' + esc(m.codigo) + ' · ' + esc(prov(m.proveedor_id).nombre) + '</span></td>' +
+        '<td class="n"><input class="qty" type="number" min="0.01" step="any" value="' + l.cantidad + '" data-i="' + i + '"> ' + esc(m.unidad) + '</td>' +
+        '<td class="n">' + money(m.precio_unitario) + '</td><td class="n">' + num(m.merma_pct) + ' %</td>' +
+        '<td class="n">' + money(r2(c.cantidad * c.precio_unitario * (1 + c.merma_pct / 100))) + '</td>' +
+        '<td class="n"><button class="btn sm danger" data-del="' + i + '" title="Quitar">✕</button></td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">Agrega materiales desde el catálogo.</td></tr>';
+    resumen();
+  };
+  const resumen = () => {
+    E.margen_pct = Number($('#pMargen').value) || 0;
+    const t = calcular(E.lineas.map(lineaCalc), E.margen_pct);
+    $('#rMat').textContent = money(t.costo_materiales); $('#rMer').textContent = money(t.costo_merma);
+    $('#rDir').textContent = money(t.costo_directo); $('#rGan').textContent = money(t.ganancia); $('#rFin').textContent = money(t.precio_final);
+  };
+  const leerCab = () => { E.cliente = $('#pCli').value.trim(); E.proyecto = $('#pProy').value.trim(); E.fecha = $('#pFecha').value || hoy(); E.descripcion = $('#pDesc').value.trim(); };
+
+  pintarSel(); pintarLin();
+  $('#sProv').addEventListener('change', pintarSel); $('#sBus').addEventListener('input', pintarSel);
+  $('#sBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-add]'); if (!b) return;
+    const id = Number(b.dataset.add), q = Number($('#q' + id).value);
+    if (!(q > 0)) { toast('La cantidad debe ser mayor que 0', true); return; }
+    const ya = E.lineas.find(l => l.material_id === id);
+    if (ya) ya.cantidad = r2(ya.cantidad + q); else E.lineas.push({ material_id: id, cantidad: q });
+    pintarLin(); toast(matById(id).nombre + ' agregado');
+  });
+  $('#lBody').addEventListener('change', e => {
+    const i = e.target.dataset.i; if (i == null) return;
+    const v = Number(e.target.value);
+    if (v > 0) E.lineas[i].cantidad = v; else toast('La cantidad debe ser mayor que 0', true);
+    pintarLin();
+  });
+  $('#lBody').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (!b) return; E.lineas.splice(Number(b.dataset.del), 1); pintarLin(); });
+  $('#pMargen').addEventListener('input', resumen);
+  if ($('#pPlant')) $('#pPlant').addEventListener('change', async e => {
+    if (!e.target.value) return;
+    const p = S.cotizaciones.find(c => c.id === Number(e.target.value));
+    const det = await db.detalle(p.id);
+    leerCab();
+    E.lineas = det.map(d => ({ material_id: d.material_id, cantidad: Number(d.cantidad) }));
+    E.margen_pct = Number(p.margen_pct); $('#pMargen').value = E.margen_pct;
+    if (!E.proyecto) { E.proyecto = p.proyecto; $('#pProy').value = p.proyecto; }
+    if (!E.descripcion) { E.descripcion = p.descripcion || ''; $('#pDesc').value = E.descripcion; }
+    pintarLin(); toast('Plantilla cargada: ' + p.proyecto + ' (con precios actuales del catálogo)');
+  });
+
+  async function guardar(comoPlantilla) {
+    leerCab();
+    const plantilla = comoPlantilla || E.es_plantilla;
+    if (!E.proyecto) { toast('Escribe el nombre del proyecto', true); $('#pProy').focus(); return; }
+    if (!plantilla && !E.cliente) { toast('Elige o escribe el cliente', true); $('#pCli').focus(); return; }
+    if (!E.lineas.length) { toast('Agrega al menos un material', true); return; }
+    $$('#bGuardar, #bPlant').forEach(b => b.disabled = true);
+    try {
+      let cliente_id = null;
+      if (!plantilla) {
+        let cl = S.clientes.find(c => c.nombre.toLowerCase() === E.cliente.toLowerCase());
+        if (!cl) cl = await db.addCliente(E.cliente);
+        cliente_id = cl.id;
+      }
+      await db.guardar({ id: comoPlantilla ? null : E.id, cliente_id, proyecto: E.proyecto, descripcion: E.descripcion || null,
+                         fecha: E.fecha, margen_pct: E.margen_pct, es_plantilla: plantilla }, E.lineas);
+      toast(plantilla ? 'Plantilla guardada' : 'Presupuesto guardado como borrador');
+      editor = null; filtroEstado = plantilla ? 'Plantillas' : 'Todas'; ir('historial');
+    } catch (err) { toast(err.message, true); $$('#bGuardar, #bPlant').forEach(b => b.disabled = false); }
+  }
+  $('#bGuardar').addEventListener('click', () => guardar(false));
+  if ($('#bPlant')) $('#bPlant').addEventListener('click', () => guardar(true));
+  if ($('#bCancel')) $('#bCancel').addEventListener('click', () => { editor = null; ir('historial'); });
+  $('#bPdf').addEventListener('click', () => {
+    leerCab();
+    if (!E.lineas.length) { toast('Agrega al menos un material', true); return; }
+    const t = calcular(E.lineas.map(lineaCalc), E.margen_pct);
+    pdf({ codigo: E.id ? E.codigo : 'Borrador', fecha: E.fecha, cliente: E.cliente, proyecto: E.proyecto, descripcion: E.descripcion, precio_final: t.precio_final },
+        E.lineas.map(l => ({ m: matById(l.material_id), cantidad: l.cantidad })));
+  });
+}
+
+/* ---------- PDF de la propuesta comercial (HU8 y HU9) ---------- */
+function pdf(c, items) {
+  const w = window.open('', '_blank');
+  if (!w) { toast('Permite las ventanas emergentes para descargar el PDF', true); return; }
+  const vence = new Date(c.fecha + 'T00:00:00'); vence.setDate(vence.getDate() + VALIDEZ_DIAS);
+  w.document.write('<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Cotización ' + esc(c.codigo) + ' · ' + esc(c.proyecto) + '</title>' +
+    '<style>body{font-family:Inter,Arial,sans-serif;color:#111827;margin:40px;font-size:13px}h1{font-size:22px;margin:0}' +
+    '.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0B1730;padding-bottom:16px;margin-bottom:22px}' +
+    '.logo{font-weight:700;font-size:26px;color:#0B1730}.logo span{color:#2563EB}.muted{color:#6B7280}' +
+    '.box{display:grid;grid-template-columns:1fr 1fr;gap:6px 30px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:14px 0}' +
+    'th,td{border-bottom:1px solid #E5E7EB;padding:8px;text-align:left}th{background:#F5F7FB;font-size:11px;text-transform:uppercase;color:#6B7280}' +
+    'td.n,th.n{text-align:right}.tot{display:flex;justify-content:flex-end;gap:30px;font-size:18px;font-weight:700;margin-top:10px;padding:14px;background:#EFF4FF;border-radius:8px}' +
+    '.firm{margin-top:22px;border:1px solid #E5E7EB;border-radius:8px;padding:12px;font-size:12px;line-height:1.6}@media print{body{margin:18mm}}</style></head><body>' +
+    '<div class="hd"><div><div class="logo">ESPI<span>X</span></div><div class="muted">Presupuestos para fabricación bajo pedido</div></div>' +
+    '<div style="text-align:right"><h1>Cotización ' + esc(c.codigo) + '</h1><div class="muted">Fecha: ' + fdate(c.fecha) + '</div></div></div>' +
+    '<div class="box"><div><span class="muted">Cliente</span><br><b>' + esc(c.cliente || '—') + '</b></div><div><span class="muted">Proyecto</span><br><b>' + esc(c.proyecto) + '</b></div>' +
+    '<div style="grid-column:1/-1"><span class="muted">Descripción</span><br>' + esc(c.descripcion || '—') + '</div></div>' +
+    '<b>Materiales y especificaciones técnicas</b><table><thead><tr><th>Código</th><th>Material</th><th>Especificación</th><th class="n">Cantidad</th><th>Unidad</th></tr></thead><tbody>' +
+    items.map(i => '<tr><td>' + esc(i.m.codigo) + '</td><td>' + esc(i.m.nombre) + '</td><td>' + esc(i.m.especificacion || '—') + '</td><td class="n">' + num(i.cantidad) + '</td><td>' + esc(i.m.unidad) + '</td></tr>').join('') +
+    '</tbody></table><div class="tot"><span>Precio final</span><span>' + money(c.precio_final) + '</span></div>' +
+    '<div class="firm"><b>Precio firme.</b> El precio de esta cotización está calculado con los precios acordados con nuestros proveedores y no cambia durante la fabricación. ' +
+    'Válido hasta el ' + fdate(iso(vence)) + ' (' + VALIDEZ_DIAS + ' días). Si necesitas cambiar medidas o acabados, te enviamos una nueva versión.</div>' +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');
+  w.document.close();
+}
+async function pdfDe(id) {
+  const c = S.cotizaciones.find(x => x.id === id);
+  const det = await db.detalle(id);
+  pdf(c, det.map(d => ({ m: matById(d.material_id), cantidad: Number(d.cantidad) })));
+}
+
+/* =====================================================================
+   COTIZACIONES ANTERIORES (HU6, HU10)
+   ===================================================================== */
+async function vHistorial() {
+  const todas = S.cotizaciones;
+  const filtros = ['Todas'].concat(ESTADOS, ['Plantillas']);
+  const cuenta = f => f === 'Todas' ? todas.filter(c => !c.es_plantilla).length : f === 'Plantillas' ? todas.filter(c => c.es_plantilla).length
+                    : todas.filter(c => !c.es_plantilla && c.estado === f).length;
+  $('#view').innerHTML =
+    '<div class="row between"><div><h1>Cotizaciones anteriores</h1><p class="lead">Historial de todas las cotizaciones y su estado. Cambia el estado según lo que responda el cliente.</p></div>' +
+      '<button class="btn pri" onclick="nuevoPresupuesto()">+ Nuevo presupuesto</button></div>' +
+    '<div class="card"><div class="row between" style="margin-bottom:12px"><div class="chips">' +
+      filtros.map(f => '<button class="chip' + (f === filtroEstado ? ' on' : '') + '" data-f="' + esc(f) + '">' + esc(f) + ' · ' + cuenta(f) + '</button>').join('') +
+      '</div><input id="hBus" placeholder="Buscar cliente, proyecto o código" style="width:260px"></div>' +
+      '<div class="tbl"><table class="wide"><thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Proyecto</th><th class="n">Costo directo</th><th class="n">Margen</th><th class="n">Precio final</th><th>Estado</th><th class="n">Acciones</th></tr></thead><tbody id="hBody"></tbody></table></div></div>';
+  const pintar = () => {
+    const q = $('#hBus').value.toLowerCase();
+    const l = todas.filter(c => (filtroEstado === 'Plantillas' ? c.es_plantilla : !c.es_plantilla && (filtroEstado === 'Todas' || c.estado === filtroEstado)) &&
+      (!q || ((c.codigo || '') + ' ' + (c.cliente || '') + ' ' + c.proyecto).toLowerCase().includes(q)));
+    $('#hBody').innerHTML = l.length ? l.map(c => {
+      const acc = [];
+      if (c.es_plantilla) {
+        acc.push('<button class="btn soft sm" data-a="usar" data-id="' + c.id + '">Usar</button>', '<button class="btn sm" data-a="editar" data-id="' + c.id + '">Editar</button>',
+                 '<button class="btn sm danger" data-a="borrar" data-id="' + c.id + '">Borrar</button>');
+      } else {
+        acc.push('<button class="btn sm" data-a="pdf" data-id="' + c.id + '">PDF</button>');
+        if (c.estado === 'Borrador') acc.push('<button class="btn sm" data-a="editar" data-id="' + c.id + '">Editar</button>');
+        acc.push('<button class="btn sm" data-a="version" data-id="' + c.id + '">Nueva versión</button>');
+        if (c.estado === 'Aprobada') acc.push('<button class="btn soft sm" data-a="bom" data-id="' + c.id + '">Materiales</button>');
+        if (c.estado === 'Borrador') acc.push('<button class="btn sm danger" data-a="borrar" data-id="' + c.id + '" title="Borrar borrador">✕</button>');
+      }
+      const est = c.es_plantilla ? '<span class="pill p-Enviada">Plantilla</span>' :
+        '<select data-est="' + c.id + '" style="width:150px;padding:5px 6px;font-size:12.5px">' + ESTADOS.map(e => '<option' + (e === c.estado ? ' selected' : '') + '>' + e + '</option>').join('') + '</select>';
+      return '<tr><td class="code"><b>' + esc(c.codigo) + '</b>' + (c.copia_de ? '<br><span class="sub" style="font-size:11px">versión de ' + esc((todas.find(x => x.id === c.copia_de) || {}).codigo || '') + '</span>' : '') +
+        '</td><td class="code">' + fdate(c.fecha) + '</td><td>' + esc(c.cliente || '—') + '</td><td>' + esc(c.proyecto) + '<br><span class="sub" style="font-size:11px">' + c.materiales + ' materiales</span></td>' +
+        '<td class="n">' + money(c.costo_directo) + '</td><td class="n">' + num(c.margen_pct) + ' %</td><td class="n"><b>' + money(c.precio_final) + '</b></td>' +
+        '<td>' + est + '</td><td class="n"><div class="row" style="justify-content:flex-end;gap:6px;flex-wrap:nowrap">' + acc.join('') + '</div></td></tr>';
+    }).join('') : '<tr><td colspan="9" class="empty">No hay cotizaciones con ese filtro.</td></tr>';
+  };
+  pintar();
+  $('#hBus').addEventListener('input', pintar);
+  $$('.chip').forEach(b => b.addEventListener('click', () => { filtroEstado = b.dataset.f; vHistorial(); }));
+  $('#hBody').addEventListener('change', async e => {
+    const id = Number(e.target.dataset.est); if (!id) return;
+    const nuevo = e.target.value, c = todas.find(x => x.id === id);
+    if ((nuevo === 'Enviada' || nuevo === 'Aprobada') && c.estado === 'Borrador' &&
+        !confirm('Al marcarla como ' + nuevo + ', el precio de ' + c.codigo + ' (' + money(c.precio_final) + ') queda firme y ya no se podrá editar. ¿Continuar?')) { e.target.value = c.estado; return; }
+    try { await db.estado(id, nuevo); toast(c.codigo + ' → ' + nuevo + (nuevo === 'Aprobada' ? '. Ya está su lista de materiales.' : '')); await cargar(); vHistorial(); }
+    catch (err) { toast(err.message, true); e.target.value = c.estado; }
+  });
+  $('#hBody').addEventListener('click', async e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const id = Number(b.dataset.id), c = todas.find(x => x.id === id);
+    try {
+      if (b.dataset.a === 'pdf') await pdfDe(id);
+      if (b.dataset.a === 'editar') await abrirEnEditor(id);
+      if (b.dataset.a === 'bom') { bomSel = id; ir('compras'); }
+      if (b.dataset.a === 'version' || b.dataset.a === 'usar') {
+        const nombre = b.dataset.a === 'usar' ? prompt('Nombre del nuevo proyecto', c.proyecto) : c.proyecto;
+        if (nombre === null) return;
+        const nuevo = await db.duplicar(id, nombre || c.proyecto);
+        await cargar();
+        toast((b.dataset.a === 'usar' ? 'Presupuesto creado desde la plantilla' : 'Nueva versión creada') + ' con los precios actuales del catálogo');
+        await abrirEnEditor(Number(nuevo));
+      }
+      if (b.dataset.a === 'borrar' && confirm('¿Borrar ' + c.codigo + '?')) { await db.borrar(id); toast(c.codigo + ' borrado'); await cargar(); vHistorial(); }
+    } catch (err) { toast(err.message, true); }
+  });
+}
+
+/* =====================================================================
+   LISTA DE MATERIALES Y COMPRAS POR PROVEEDOR (HU3, HU5, HU7)
+   ===================================================================== */
+async function vCompras() {
+  const aprob = S.cotizaciones.filter(c => !c.es_plantilla && c.estado === 'Aprobada');
+  if (!aprob.some(c => c.id === bomSel)) bomSel = aprob.length ? aprob[0].id : null;
+  $('#view').innerHTML =
+    '<h1>Lista de materiales</h1><p class="lead">Se genera sola cuando una cotización pasa a Aprobada. Incluye la merma y viene separada por proveedor para pedir de una vez.</p>' +
+    (aprob.length ? '<div class="card"><label>Cotización aprobada</label><select id="cSel" style="max-width:520px">' +
+      aprob.map(c => '<option value="' + c.id + '"' + (c.id === bomSel ? ' selected' : '') + '>' + esc(c.codigo + ' · ' + c.proyecto + ' · ' + (c.cliente || '')) + '</option>').join('') +
+      '</select></div><div id="cBody"></div>' : '<div class="card empty">Todavía no hay cotizaciones aprobadas. Cuando apruebes una en Cotizaciones anteriores, su lista de materiales aparece aquí.</div>');
+  if (!aprob.length) return;
+  $('#cSel').addEventListener('change', e => { bomSel = Number(e.target.value); pintarBom(); });
+  pintarBom();
+}
+async function pintarBom() {
+  const c = S.cotizaciones.find(x => x.id === bomSel);
+  const rows = (await db.bom(bomSel)).map(r => { ['cantidad_proyecto', 'cantidad_a_comprar', 'precio_unitario', 'costo_compra'].forEach(k => r[k] = Number(r[k])); return r; });
+  const grupos = {};
+  rows.forEach(r => { (grupos[r.proveedor] = grupos[r.proveedor] || []).push(r); });
+  const total = rows.reduce((a, r) => a + r.costo_compra, 0);
+  $('#cBody').innerHTML =
+    '<div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">' +
+      kpi('Materiales distintos', rows.length, 'para ' + esc(c.proyecto)) +
+      kpi('Proveedores', Object.keys(grupos).length, 'un pedido por proveedor') +
+      kpi('Costo de compra', money(total), 'cantidades con merma, redondeadas hacia arriba') + '</div>' +
+    Object.keys(grupos).map(p => {
+      const g = grupos[p], f = g[0], sub = g.reduce((a, r) => a + r.costo_compra, 0);
+      const texto = 'Hola ' + (f.contacto || p) + ', le escribimos de ESPIX. Requerimiento de compra para el proyecto ' + c.codigo + ' (' + c.proyecto + '):\n' +
+        g.map(r => '• ' + r.material_codigo + ' ' + r.material + ': ' + num(r.cantidad_a_comprar) + ' ' + r.unidad).join('\n') +
+        '\nTotal referencial: ' + money(sub) + ' según el precio acordado. ¿Nos confirma disponibilidad y fecha de entrega? Gracias.';
+      const wa = f.whatsapp ? 'https://wa.me/' + String(f.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(texto) : null;
+      const mail = f.correo ? 'mailto:' + f.correo + '?subject=' + encodeURIComponent('Requerimiento de compra ' + c.codigo + ' · ESPIX') + '&body=' + encodeURIComponent(texto) : null;
+      return '<div class="group"><div class="group-h"><div><b>' + esc(p) + '</b><div class="sub" style="margin:2px 0 0">' + esc(f.contacto || '') + (f.whatsapp ? ' · ' + esc(f.whatsapp) : '') + '</div></div>' +
+        '<div class="row"><b>' + money(sub) + '</b>' +
+        (wa ? '<a class="btn soft sm" target="_blank" rel="noopener" href="' + esc(wa) + '">Enviar por WhatsApp</a>' : '') +
+        (mail ? '<a class="btn sm" href="' + esc(mail) + '">Enviar por correo</a>' : '') + '</div></div>' +
+        '<div class="tbl"><table><thead><tr><th>Material</th><th class="n">Cantidad del proyecto</th><th class="n">A comprar (con merma)</th><th class="n">Precio acordado</th><th class="n">Costo</th></tr></thead><tbody>' +
+        g.map(r => '<tr><td class="mat"><b>' + esc(r.material) + '</b><span>' + esc(r.material_codigo) + (r.especificacion ? ' · ' + esc(r.especificacion) : '') + '</span></td>' +
+          '<td class="n">' + num(r.cantidad_proyecto) + ' ' + esc(r.unidad) + '</td><td class="n"><b>' + num(r.cantidad_a_comprar) + ' ' + esc(r.unidad) + '</b></td>' +
+          '<td class="n">' + money(r.precio_unitario) + '</td><td class="n">' + money(r.costo_compra) + '</td></tr>').join('') +
+        '</tbody></table></div></div>';
+    }).join('');
+}
+
+/* =====================================================================
+   TABLERO DE INDICADORES (sección 4.1 del informe)
+   ===================================================================== */
+async function vTablero() {
+  const meses = (await db.indicadores()).map(m => { Object.keys(m).forEach(k => { if (k !== 'mes' && m[k] != null) m[k] = Number(m[k]); }); return m; });
+  if (!meses.length) {
+    $('#view').innerHTML = '<h1>Tablero</h1><div class="card empty">La tabla cotizaciones_historicas está vacía. Importa el CSV del dataset en Supabase (ver README).</div>';
+    return;
+  }
+  const U = meses[0];
+  if (periodo !== 'todos' && !meses.some(m => m.mes === periodo)) periodo = 'todos';
+  const sel = periodo === 'todos' ? meses : meses.filter(m => m.mes === periodo);
+  const s = k => sel.reduce((a, m) => a + (m[k] || 0), 0);
+  const tot = s('total_cotizaciones');
+  const ind = [
+    { t: 'Tasa de cancelación por demora', v: s('canceladas_demora') / tot, u: U.umbral_cancelacion, f: pct, d: s('canceladas_demora') + ' canceladas ÷ ' + tot + ' cotizaciones', n: tot },
+    { t: 'Tasa de error de cálculo', v: s('con_error_calculo') / tot, u: U.umbral_error, f: pct, d: s('con_error_calculo') + ' con error ÷ ' + tot + ' cotizaciones', n: tot },
+    { t: 'Lead time promedio', v: s('suma_lead_time') / s('con_lead_time'), u: U.umbral_lead_time, f: x => dec1(x) + ' días', d: num(s('suma_lead_time')) + ' días ÷ ' + s('con_lead_time') + ' cotizaciones', n: s('con_lead_time') },
+    { t: 'Fuga de margen media', v: s('suma_fuga_margen') / s('con_fuga'), u: U.umbral_fuga_margen, f: x => dec1(x) + ' p.p.', d: num(s('suma_fuga_margen')) + ' p.p. ÷ ' + s('con_fuga') + ' cotizaciones', n: s('con_fuga') }
+  ];
+  const nombreMes = m => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'][Number(m.slice(5, 7)) - 1] + ' ' + m.slice(2, 4);
+  $('#view').innerHTML =
+    '<div class="row between"><div><h1>Tablero de indicadores</h1><p class="lead">Cotizaciones hechas a mano antes de ESPIX (' + tot + ' registros en el período). En rojo, lo que pasa el umbral.</p></div>' +
+      '<div class="row"><select id="tPer" style="width:auto"><option value="todos">Todos los meses</option>' +
+        meses.map(m => '<option value="' + m.mes + '"' + (m.mes === periodo ? ' selected' : '') + '>' + nombreMes(m.mes) + '</option>').join('') + '</select>' +
+        (APPS_SCRIPT_URL ? '<a class="btn" target="_blank" rel="noopener" href="' + esc(APPS_SCRIPT_URL) + '">Abrir en Apps Script</a>' : '') + '</div></div>' +
+    '<div class="kpis">' + ind.map(i => {
+      const ok = i.v <= i.u;
+      return '<div class="kpi"><div class="t">' + i.t + '</div><div class="v" style="color:' + (ok ? 'var(--ink)' : 'var(--bad)') + '">' + i.f(i.v) + '</div>' +
+        '<div class="f">' + i.d + '</div><div class="f">Umbral ≤ ' + i.f(i.u) + ' · ' + i.n + ' registros</div>' +
+        '<span class="pill ' + (ok ? 'ok">Dentro del umbral' : 'bad">Pasa el umbral') + '</span></div>';
+    }).join('') + '</div>' +
+    '<div class="grid2">' +
+      grafico(meses, 'tasa_cancelacion_demora', U.umbral_cancelacion, pct, 'Cancelación por demora por mes', nombreMes) +
+      grafico(meses, 'tasa_error_calculo', U.umbral_error, pct, 'Error de cálculo por mes', nombreMes) + '</div>' +
+    '<div class="card"><h2>Detalle por mes</h2><p class="sub">Cada porcentaje es el número de casos del mes dividido entre las cotizaciones del mes.</p><div class="tbl"><table><thead><tr><th>Mes</th><th class="n">Cotizaciones</th>' +
+      '<th class="n">Cancelación por demora</th><th class="n">Error de cálculo</th><th class="n">Lead time</th><th class="n">Fuga de margen</th></tr></thead><tbody>' +
+      meses.map(m => '<tr><td>' + nombreMes(m.mes) + '</td><td class="n">' + m.total_cotizaciones + '</td>' +
+        celda(m.tasa_cancelacion_demora, U.umbral_cancelacion, pct) + celda(m.tasa_error_calculo, U.umbral_error, pct) +
+        celda(m.lead_time_promedio, U.umbral_lead_time, dec1) + celda(m.fuga_margen_media, U.umbral_fuga_margen, dec1) + '</tr>').join('') +
+    '</tbody></table></div></div>';
+  $('#tPer').addEventListener('change', e => { periodo = e.target.value; vTablero(); });
+}
+function celda(v, u, f) { return '<td class="n' + (v > u ? ' red' : '') + '">' + (v == null ? '—' : f(v)) + '</td>'; }
+function grafico(meses, campo, umbral, fmt, titulo, nm) {
+  const W = 520, H = 230, L = 50, R = 18, T = 16, B = 32;
+  const vals = meses.map(m => m[campo]);
+  const hi = Math.max.apply(null, vals.concat([umbral])) * 1.15, lo = 0;
+  const x = i => L + (meses.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (meses.length - 1));
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  let g = '';
+  for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4; g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#EEF0F4"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="10.5" fill="#6B7280">' + fmt(v) + '</text>'; }
+  const path = meses.map((m, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(m[campo]).toFixed(1)).join(' ');
+  return '<div class="card"><h2>' + titulo + '</h2><p class="sub">La línea punteada es el umbral (' + fmt(umbral) + ').</p><svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="' + esc(titulo) + '">' + g +
+    '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(umbral) + '" y2="' + y(umbral) + '" stroke="#B91C1C" stroke-dasharray="5 4" stroke-width="1.5"/>' +
+    '<path d="' + path + '" fill="none" stroke="#2563EB" stroke-width="2.2"/>' +
+    meses.map((m, i) => '<circle cx="' + x(i) + '" cy="' + y(m[campo]) + '" r="4" fill="' + (m[campo] > umbral ? '#B91C1C' : '#2563EB') + '"><title>' + nm(m.mes) + ': ' + fmt(m[campo]) + '</title></circle>' +
+      '<text x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="10.5" fill="#6B7280">' + nm(m.mes) + '</text>').join('') + '</svg></div>';
+}
+
+/* ---------- Inicio ---------- */
+if (DEMO) $('#demo').classList.remove('hide'); else $('#conn').textContent = 'USD · Conectado a Supabase';
+ir('inicio');
+</script>
+</body>
+</html>
